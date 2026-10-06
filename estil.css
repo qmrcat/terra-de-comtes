@@ -1,0 +1,363 @@
+/* =====================================================================
+   Terra de Comtes · estil
+   Concepte: un mapa pintat al fresc (paleta romànica: ocre, almagre,
+   lapislàtzuli) sobre una taula fosca; el tauler lateral fa de quadern
+   de campanya. Tema únic i fosc, triat expressament.
+   ===================================================================== */
+:root {
+  color-scheme: dark;
+  --nit: #0e1524;          /* fons de la pàgina */
+  --mar: #15223b;          /* mar del mapa */
+  --mar-onada: #1f3152;
+  --terra: #d9c7a0;        /* calç i ocre del fresc */
+  --terra-fosca: #b49b6c;
+  --tinta: #1c150f;        /* contorns */
+  --panell: #131d33;
+  --panell-alt: #1a2742;
+  --vora: #2b3b5f;
+  --text: #ece2cc;
+  --text-suau: #a3b1cd;
+  --ocre: #e0a83e;         /* accent */
+  --almagre: #b5432c;
+  --lapis: #2f4f9a;
+  --j0: #d64a33;  /* vermell · Barcelona */
+  --j1: #5b8ef0;  /* blau · Empúries */
+  --j2: #e8bb2e;  /* or · Urgell */
+  --j3: #45b277;  /* verd · Pallars */
+  --f-titol: 'Uncial Antiqua', 'Alegreya', Georgia, serif;
+  --f-text: 'Alegreya Sans', 'Segoe UI', system-ui, sans-serif;
+  --f-xifra: 'Alegreya', Georgia, 'Times New Roman', serif;
+  --f-sc: 'Alegreya SC', 'Alegreya', Georgia, serif;
+  --radi: 6px;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { min-height: 100%; }
+body {
+  margin: 0;
+  background: var(--nit);
+  color: var(--text);
+  font: 16px/1.45 var(--f-text);
+  -webkit-font-smoothing: antialiased;
+}
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--ocre); outline-offset: 2px; }
+
+/* ---------- Capçalera ---------- */
+.barra {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px;
+  padding: 14px 20px 12px;
+}
+.marca h1 {
+  margin: 0; font: 400 clamp(1.6rem, 3vw, 2.2rem)/1 var(--f-titol); letter-spacing: .02em; color: var(--terra);
+}
+.lema { margin: 4px 0 0; color: var(--text-suau); font-size: .9rem; }
+.eines { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* Sanefa romànica: bandes de color com les dels frescos de Taüll */
+.sanefa {
+  height: 10px;
+  background:
+    repeating-linear-gradient(90deg, var(--almagre) 0 18px, var(--ocre) 18px 24px, var(--lapis) 24px 42px, var(--terra) 42px 48px);
+  border-block: 2px solid var(--tinta);
+  opacity: .9;
+}
+
+.boto, .boto-fantasma {
+  border-radius: var(--radi); padding: 9px 16px; cursor: pointer; font-weight: 700; letter-spacing: .01em;
+  transition: transform .12s ease, background-color .15s ease, border-color .15s ease;
+}
+.boto { background: var(--ocre); color: var(--tinta); border: 2px solid var(--tinta); box-shadow: 0 3px 0 var(--tinta); }
+.boto:hover { background: #ecb851; }
+.boto:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--tinta); }
+.boto:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+.boto-fantasma { background: transparent; border: 1px solid var(--vora); color: var(--text); }
+.boto-fantasma:hover { border-color: var(--ocre); }
+.boto-fantasma:disabled { opacity: .4; cursor: not-allowed; }
+
+.interruptor { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-suau); font-size: .95rem; }
+.interruptor input { appearance: none; width: 38px; height: 22px; border-radius: 11px; background: var(--panell-alt); border: 1px solid var(--vora); position: relative; cursor: pointer; margin: 0; }
+.interruptor input::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--text-suau); transition: transform .15s ease, background-color .15s; }
+.interruptor input:checked { background: #3a3220; border-color: var(--ocre); }
+.interruptor input:checked::after { transform: translateX(16px); background: var(--ocre); }
+
+/* ---------- Distribució ---------- */
+.taula {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 400px); gap: 20px;
+  padding: 18px 20px 28px; max-width: 1320px; margin: 0 auto;
+}
+@media (max-width: 900px) {
+  .taula { grid-template-columns: minmax(0, 1fr); padding: 14px 16px 24px; }
+  .barra { padding: 12px 16px; }
+}
+
+/* ---------- Mapa ---------- */
+.mapa-marc { position: relative; min-width: 0; align-self: start; }
+#mapa {
+  display: block; width: 100%; height: auto; max-height: calc(100vh - 140px);
+  background: var(--mar); border: 2px solid var(--tinta); border-radius: var(--radi);
+  box-shadow: 0 0 0 1px var(--vora), 0 18px 40px rgba(0,0,0,.35);
+  touch-action: manipulation; user-select: none;
+}
+.llegenda { margin: 8px 2px 0; color: var(--text-suau); font-size: .85rem; }
+
+.regio .terra-regio {
+  fill: var(--terra); stroke: var(--tinta); stroke-width: 2.2; stroke-linejoin: round;
+  transition: fill .35s ease; cursor: pointer;
+}
+.regio:hover .terra-regio { fill: #e5d6b2; }
+.regio.erma .terra-regio { fill: color-mix(in srgb, var(--terra) 58%, #6f6a5c); }
+.regio.erma:hover .terra-regio { fill: color-mix(in srgb, var(--terra) 70%, #6f6a5c); }
+.regio.previsio .terra-regio { fill: color-mix(in srgb, var(--tint) 34%, var(--terra)); }
+.regio.previsio:hover .terra-regio { fill: color-mix(in srgb, var(--tint) 26%, #e5d6b2); }
+.regio.resolta .terra-regio { fill: color-mix(in srgb, var(--tint) 62%, var(--terra-fosca)); }
+.regio.buida-resolta .terra-regio { fill: #8d8167; }
+.regio.lluita .terra-regio { stroke: var(--ocre); stroke-width: 4; }
+.regio:focus { outline: none; }
+.regio:focus-visible .terra-regio { stroke: var(--ocre); stroke-width: 3.5; }
+
+.contorn-opcio { fill: none; stroke: var(--ocre); stroke-width: 4; pointer-events: none; opacity: 0; }
+.contorn-opcio[data-estat="opcio"], .contorn-opcio[data-estat="candidat"] { opacity: 1; animation: batec 1.1s ease-in-out infinite; }
+.contorn-opcio[data-estat="candidat"] { stroke: #fff4d6; stroke-dasharray: 6 5; }
+.contorn-opcio[data-estat="triat"] { opacity: 1; stroke: #fff4d6; stroke-width: 5; }
+.contorn-opcio[data-estat="destacat"] { opacity: 1; stroke: var(--ocre); stroke-width: 5; }
+.regio.atenuat .terra-regio { fill: color-mix(in srgb, var(--terra) 55%, var(--mar)); }
+@keyframes batec { 50% { opacity: .35; } }
+
+.ruta-mar { fill: none; stroke: var(--terra); stroke-width: 1.6; stroke-dasharray: 2 6; stroke-linecap: round; opacity: .55; }
+.onada { fill: none; stroke: var(--mar-onada); stroke-width: 1.4; }
+.costa-ombra { fill: none; stroke: #0a1120; stroke-width: 9; stroke-linejoin: round; opacity: .55; }
+.textura { pointer-events: none; mix-blend-mode: multiply; opacity: .35; }
+.rotul-mar { font: 500 13px var(--f-sc); letter-spacing: .3em; fill: #5d7096; }
+
+.nom-regio { font: 700 12px var(--f-sc); fill: var(--tinta); letter-spacing: .06em; text-anchor: middle; pointer-events: none; paint-order: stroke; stroke: color-mix(in srgb, var(--terra) 80%, transparent); stroke-width: 3px; }
+.fitxa { pointer-events: none; }
+.fitxa .disc { fill: var(--tinta); stroke: var(--terra); stroke-width: 1.5; }
+.fitxa .anell { fill: none; stroke: var(--ocre); stroke-width: 2; }
+.fitxa text { font: 800 17px var(--f-xifra); font-variant-numeric: lining-nums tabular-nums; fill: var(--terra); text-anchor: middle; dominant-baseline: central; }
+.fitxa.guanyada .anell { stroke: var(--tint); stroke-width: 4; }
+.insignia circle { stroke: var(--tinta); stroke-width: 1.4; fill: #b98a5e; }
+.insignia[data-v="6"] circle { fill: var(--ocre); }
+.insignia[data-v="4"] circle { fill: #cfd5df; }
+.fitxa .insignia text { font: 800 10px var(--f-text); fill: var(--tinta); }
+.fitxa.amagada .disc { fill: #4a4436; stroke: #b5a682; stroke-dasharray: 3 2; }
+.fitxa.amagada .anell { stroke: #8f8466; stroke-width: 1.5; }
+.fitxa.amagada text { font-size: 15px; fill: #efe3c6; }
+.fitxa.revelada .disc { fill: #6b4f1d; stroke-dasharray: none; }
+.fitxa.amagada.guanyada .anell { stroke: var(--tint); stroke-width: 4; }
+.nom-regio.erm { font-style: italic; font-weight: 500; fill: #2e2619; }
+
+.xip rect { stroke: var(--tinta); stroke-width: 1.4; }
+.xip text { font: 800 11.5px var(--f-text); font-variant-numeric: tabular-nums; text-anchor: middle; dominant-baseline: central; fill: var(--tinta); }
+.xip.ref rect { fill: #f7f1e3; stroke-dasharray: 2 1.5; }
+.xip.nou rect { animation: aparicio .6s ease-out; transform-box: fill-box; transform-origin: center; }
+@keyframes aparicio { from { transform: scale(1.8); opacity: 0; } }
+.fletxa { stroke: #f7f1e3; stroke-width: 2.5; fill: none; marker-end: url(#punta); stroke-dasharray: 5 4; animation: flux .8s linear infinite; }
+@keyframes flux { to { stroke-dashoffset: -18; } }
+
+/* Globus d'informació */
+.globus {
+  position: absolute; z-index: 5; pointer-events: none; min-width: 190px; max-width: 250px;
+  background: var(--panell); border: 1px solid var(--vora); border-radius: var(--radi);
+  padding: 10px 12px; font-size: .88rem; box-shadow: 0 10px 24px rgba(0,0,0,.45);
+}
+.globus h4 { margin: 0 0 4px; font: 700 1rem var(--f-sc); color: var(--terra); }
+.globus h4 small { font: 400 .78rem var(--f-text); color: var(--text-suau); margin-left: 4px; }
+.globus .fila { display: flex; justify-content: space-between; gap: 10px; color: var(--text-suau); }
+.globus .fila b { color: var(--text); font-variant-numeric: tabular-nums; }
+.globus .veins { margin-top: 6px; color: var(--text-suau); font-size: .82rem; }
+
+/* Cartell de batalla */
+.batalla {
+  position: absolute; left: 12px; top: 12px; width: min(320px, 46%); z-index: 6;
+  background: color-mix(in srgb, var(--panell) 94%, transparent); border: 2px solid var(--tinta); outline: 1px solid var(--vora);
+  border-radius: var(--radi); padding: 12px 14px; box-shadow: 0 14px 30px rgba(0,0,0,.5);
+}
+.batalla h3 { margin: 0 0 8px; font: 400 1.25rem var(--f-titol); color: var(--terra); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.batalla h3 small { font: 700 .85rem var(--f-text); color: var(--ocre); }
+.forca { display: grid; grid-template-columns: 92px minmax(0,1fr) 32px; align-items: center; gap: 8px; font-size: .85rem; margin: 4px 0; }
+.forca .barra-f { height: 12px; background: var(--panell-alt); border-radius: 2px; overflow: hidden; display: flex; }
+.forca .barra-f span { display: block; height: 100%; }
+.forca .barra-f .r { background: repeating-linear-gradient(45deg, #f7f1e3 0 3px, transparent 3px 6px); }
+.forca b { text-align: right; font-variant-numeric: tabular-nums; }
+.forca .qui { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.veredicte { margin: 8px 0 0; font-weight: 700; }
+
+/* ---------- Tauler lateral ---------- */
+.tauler { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.bloc { background: var(--panell); border: 1px solid var(--vora); border-radius: var(--radi); padding: 14px; min-width: 0; }
+.etiqueta { margin: 0 0 10px; font: 700 .78rem var(--f-text); letter-spacing: .14em; text-transform: uppercase; color: var(--text-suau); display: flex; justify-content: space-between; gap: 8px; }
+.etiqueta .nota { letter-spacing: .02em; text-transform: none; font-weight: 500; }
+
+.jugadors { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.jugador {
+  display: grid; grid-template-columns: 30px minmax(0,1fr) auto; gap: 4px 10px; align-items: center;
+  padding: 8px 10px; border-radius: var(--radi); border: 1px solid transparent; background: var(--panell-alt);
+  transition: border-color .2s, background-color .2s;
+}
+.jugador.actiu { border-color: var(--color); background: color-mix(in srgb, var(--color) 14%, var(--panell-alt)); }
+.escut {
+  width: 30px; height: 34px; grid-row: span 2; background: var(--color); border: 2px solid var(--tinta);
+  clip-path: polygon(0 0, 100% 0, 100% 62%, 50% 100%, 0 62%);
+  display: grid; place-items: center; font: 800 .8rem var(--f-xifra); color: var(--tinta);
+}
+.jugador .nom { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jugador .nom small { font-weight: 500; color: var(--text-suau); }
+.jugador .detall { font-size: .82rem; color: var(--text-suau); display: flex; gap: 2px 12px; flex-wrap: wrap; }
+.jugador .detall > span { white-space: nowrap; }
+.jugador .detall b { color: var(--text); font-variant-numeric: tabular-nums; }
+.jugador .punts { grid-row: span 2; text-align: right; font: 800 1.35rem/1 var(--f-xifra); font-variant-numeric: lining-nums tabular-nums; }
+.jugador .punts small { display: block; font: 500 .7rem var(--f-text); color: var(--text-suau); letter-spacing: .05em; }
+.jugador .diu { grid-column: 2 / -1; font-style: italic; font-size: .86rem; color: var(--terra); min-height: 0; }
+.jugador .diu:empty { display: none; }
+.pensant::after { content: '…'; animation: punts 1s steps(3) infinite; display: inline-block; overflow: hidden; vertical-align: bottom; width: 1.2em; }
+@keyframes punts { from { width: 0; } to { width: 1.2em; } }
+
+/* Zona d'acció */
+.accio { display: flex; flex-direction: column; gap: 12px; }
+.accio h3 { margin: 0; font: 400 1.2rem var(--f-titol); color: var(--terra); }
+.accio p { margin: 0; color: var(--text-suau); }
+.accio .fila-botons { display: flex; flex-wrap: wrap; gap: 8px; }
+.daus { display: flex; gap: 10px; }
+/* Els daus prenen el color de la casa que té el torn (data-casa a #accio) */
+.accio { --dau: #f3ead6; --punt: var(--tinta); }
+.accio[data-casa="0"] { --dau: var(--j0); --punt: #fff6e4; }
+.accio[data-casa="1"] { --dau: var(--j1); --punt: #fff6e4; }
+.accio[data-casa="2"] { --dau: var(--j2); --punt: var(--tinta); }
+.accio[data-casa="3"] { --dau: var(--j3); --punt: var(--tinta); }
+.dau {
+  width: 46px; height: 46px; border-radius: 8px; background: var(--dau); border: 2px solid var(--tinta);
+  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--dau) 72%, #000), inset 0 2px 0 color-mix(in srgb, var(--dau) 70%, #fff);
+  display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); padding: 6px;
+  transition: background-color .25s ease;
+}
+.dau i { width: 8px; height: 8px; border-radius: 50%; background: var(--punt); place-self: center; visibility: hidden; }
+.dau.roda { animation: roda .55s ease-out; }
+@keyframes roda { 0% { transform: rotate(-30deg) translateY(-8px); } 60% { transform: rotate(12deg); } 100% { transform: none; } }
+.dau[data-v="1"] i:nth-child(5),
+.dau[data-v="2"] i:nth-child(1), .dau[data-v="2"] i:nth-child(9),
+.dau[data-v="3"] i:nth-child(1), .dau[data-v="3"] i:nth-child(5), .dau[data-v="3"] i:nth-child(9),
+.dau[data-v="4"] i:nth-child(1), .dau[data-v="4"] i:nth-child(3), .dau[data-v="4"] i:nth-child(7), .dau[data-v="4"] i:nth-child(9),
+.dau[data-v="5"] i:nth-child(1), .dau[data-v="5"] i:nth-child(3), .dau[data-v="5"] i:nth-child(5), .dau[data-v="5"] i:nth-child(7), .dau[data-v="5"] i:nth-child(9),
+.dau[data-v="6"] i:nth-child(1), .dau[data-v="6"] i:nth-child(3), .dau[data-v="6"] i:nth-child(4), .dau[data-v="6"] i:nth-child(6), .dau[data-v="6"] i:nth-child(7), .dau[data-v="6"] i:nth-child(9) { visibility: visible; }
+.dau.petit { width: 26px; height: 26px; padding: 3px; border-radius: 5px; border-width: 1.5px; box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--dau) 72%, #000); }
+.dau.petit i { width: 4.5px; height: 4.5px; }
+
+.daus.blancs { --dau: #fbf9f3; --punt: var(--tinta); gap: 8px; }
+.ordre-guerra { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.ordre-guerra li {
+  min-width: 27px; padding: 3px 3px; text-align: center; border-radius: 4px; border: 1px solid var(--vora);
+  font: 800 .9rem var(--f-xifra); font-variant-numeric: lining-nums tabular-nums; color: var(--text); background: var(--panell-alt);
+}
+.ordre-guerra li:first-child { border-color: var(--terra); }
+.ordre-guerra li.fet { opacity: .4; }
+.ordre-guerra li.ara { background: var(--ocre); color: var(--tinta); border-color: var(--tinta); }
+.opcions { display: grid; gap: 8px; }
+.opcio {
+  display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 12px; text-align: left;
+  padding: 10px 12px; border-radius: var(--radi); background: var(--panell-alt); border: 1px solid var(--vora); cursor: pointer;
+}
+.opcio:hover, .opcio:focus-visible, .opcio.sobre { border-color: var(--ocre); background: color-mix(in srgb, var(--ocre) 12%, var(--panell-alt)); }
+.opcio .parella { display: flex; gap: 3px; align-items: center; }
+.opcio .on { min-width: 0; }
+.opcio .on b { display: block; font-family: var(--f-sc); font-size: 1.02rem; }
+.opcio .on small { color: var(--text-suau); display: block; }
+.opcio .on small.mov { color: #cdb27a; font-size: .8rem; }
+.opcio .quants { display: flex; gap: 6px; align-items: center; font-weight: 700; white-space: nowrap; }
+
+.tria-rival { display: flex; flex-wrap: wrap; gap: 8px; }
+.tria-rival button { border-left: 6px solid var(--color); }
+
+/* Cartes */
+.cartes { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.carta {
+  width: 100%; height: 100%; text-align: left; cursor: pointer; padding: 10px 11px; border-radius: var(--radi);
+  background: linear-gradient(180deg, #2a2418, #1e1a12); border: 1px solid #5a4824; color: var(--text);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.carta b { font: 700 1rem var(--f-sc); color: var(--ocre); }
+.carta span { font-size: .8rem; color: #cbbd9c; line-height: 1.35; }
+.carta:not(:disabled):hover { border-color: var(--ocre); transform: translateY(-1px); }
+.carta:disabled { cursor: default; opacity: .55; }
+.carta.activa { border-color: var(--ocre); box-shadow: 0 0 0 2px var(--ocre); opacity: 1; }
+.cartes-buit { color: var(--text-suau); font-size: .9rem; }
+
+/* Crònica */
+.cronica { list-style: none; margin: 0; padding: 0 4px 0 0; max-height: 220px; overflow-y: auto; display: flex; flex-direction: column-reverse; gap: 5px; font-size: .88rem; color: var(--text-suau); }
+.cronica li { padding-left: 10px; border-left: 3px solid var(--color, var(--vora)); }
+.cronica li b { color: var(--text); }
+
+/* ---------- Capes (inici, regles, final) ---------- */
+.capa {
+  position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; overflow-y: auto;
+  background: rgba(6, 10, 20, .74); backdrop-filter: blur(3px);
+  padding: max(16px, env(safe-area-inset-top, 0px)) 16px max(16px, env(safe-area-inset-bottom, 0px));
+}
+.full {
+  width: min(620px, 100%); background: var(--panell); border: 2px solid var(--tinta); outline: 1px solid var(--vora);
+  border-radius: var(--radi); padding: 24px clamp(16px, 4vw, 30px); box-shadow: 0 30px 60px rgba(0,0,0,.55);
+  border-top: 8px solid transparent;
+  border-image: repeating-linear-gradient(90deg, var(--almagre) 0 18px, var(--ocre) 18px 24px, var(--lapis) 24px 42px, var(--terra) 42px 48px) 8 0 0 0 / 8px 0 0 0;
+}
+.full-regles { width: min(720px, 100%); }
+.titol-full { margin: 0 0 8px; font: 400 clamp(1.6rem, 4vw, 2.2rem)/1.1 var(--f-titol); color: var(--terra); text-wrap: balance; }
+.entradeta { margin: 0 0 18px; color: var(--text-suau); max-width: 60ch; }
+.form-inici { display: grid; gap: 16px; }
+.camp { border: 0; margin: 0; padding: 0; display: grid; gap: 6px; min-width: 0; }
+.camp label, .camp legend { font-size: .78rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text-suau); padding: 0; margin-bottom: 6px; }
+.camp input[type="text"] { background: var(--panell-alt); border: 1px solid var(--vora); border-radius: var(--radi); padding: 9px 12px; width: 100%; max-width: 320px; }
+.cases { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.casa {
+  display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: var(--radi); cursor: pointer;
+  background: var(--panell-alt); border: 1px solid var(--vora); text-align: left;
+}
+.casa .escut { grid-row: auto; width: 24px; height: 28px; flex: none; }
+.casa[aria-pressed="true"] { border-color: var(--color); box-shadow: 0 0 0 2px var(--color); background: color-mix(in srgb, var(--color) 14%, var(--panell-alt)); }
+.segment { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--vora); border-radius: var(--radi); overflow: hidden; width: fit-content; max-width: 100%; }
+.segment input { position: absolute; opacity: 0; pointer-events: none; }
+.segment label { padding: 8px 16px; cursor: pointer; margin: 0; font-size: .95rem; letter-spacing: 0; text-transform: none; font-weight: 500; color: var(--text); }
+.segment label + input + label { border-left: 1px solid var(--vora); }
+.segment input:checked + label { background: var(--ocre); color: var(--tinta); font-weight: 700; }
+.segment input:focus-visible + label { outline: 2px solid var(--ocre); outline-offset: -2px; }
+.botons-full { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+
+.regles { max-height: min(62vh, 640px); overflow-y: auto; padding-right: 6px; }
+.regles h3 { font: 700 1.05rem var(--f-sc); color: var(--ocre); margin: 18px 0 6px; letter-spacing: .03em; }
+.regles h3:first-child { margin-top: 0; }
+.regles p, .regles li { max-width: 65ch; color: var(--text); }
+.regles ul { padding-left: 1.2em; margin: 6px 0; display: grid; gap: 6px; }
+.taula-punts-marc { overflow-x: auto; margin: 8px 0; }
+.taula-punts { border-collapse: collapse; font-variant-numeric: tabular-nums; min-width: 300px; }
+.taula-punts th, .taula-punts td { padding: 5px 12px; border-bottom: 1px solid var(--vora); text-align: center; }
+.taula-punts th { font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-suau); font-weight: 700; }
+.taula-punts td:first-child, .taula-punts th:first-child { text-align: left; }
+.llista-cartes { display: grid; grid-template-columns: max-content minmax(0,1fr); gap: 4px 14px; margin: 6px 0; }
+.llista-cartes dt { font: 700 .95rem var(--f-sc); color: var(--terra); }
+.llista-cartes dd { margin: 0; color: var(--text-suau); }
+
+.resultat { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.resultat th, .resultat td { padding: 9px 8px; border-bottom: 1px solid var(--vora); text-align: left; vertical-align: middle; }
+.resultat th { font-size: .74rem; letter-spacing: .12em; text-transform: uppercase; color: var(--text-suau); font-weight: 700; }
+.resultat td.num { text-align: right; font: 800 1.3rem var(--f-xifra); font-variant-numeric: lining-nums tabular-nums; }
+.resultat .llista { color: var(--text-suau); font-size: .85rem; }
+.resultat tr.guanya td { color: var(--ocre); }
+.resultat .qui { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.resultat .escut { width: 20px; height: 24px; grid-row: auto; flex: none; }
+
+@media (max-width: 520px) {
+  .llista-cartes { grid-template-columns: minmax(0,1fr); }
+  .llista-cartes dd { margin-bottom: 6px; }
+  .resultat .llista { display: none; }
+  .dau { width: 40px; height: 40px; padding: 5px; }
+}
+
+@media (max-width: 900px) {
+  .batalla { position: static; width: 100%; margin-top: 10px; }
+  .tauler .accio { order: -1; }
+  .globus { max-width: 220px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}

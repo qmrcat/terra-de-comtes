@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Terra de Comtes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700;800&family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Uncial+Antiqua&display=swap">
+<link rel="stylesheet" href="estil.css">
+</head>
+<body>
+<!--COS-->
+<header class="barra">
+  <div class="marca">
+    <h1>Terra de Comtes</h1>
+    <p class="lema">Daus, hosts i castells, de Perpinyà a Alacant i les Illes</p>
+  </div>
+  <nav class="eines">
+    <label class="interruptor" title="Mostra qui guanyaria cada territori si la guerra comencés ara">
+      <input type="checkbox" id="opt-previsio" checked>
+      <span>Previsió</span>
+    </label>
+    <button type="button" class="boto-fantasma" id="btn-regles">Regles</button>
+    <button type="button" class="boto-fantasma" id="btn-nova">Nova partida</button>
+  </nav>
+</header>
+<div class="sanefa" aria-hidden="true"></div>
+
+<main class="taula">
+  <section class="mapa-marc" aria-label="Mapa dels territoris">
+    <svg id="mapa" role="img" aria-label="Mapa dels divuit territoris amb els castells, les fitxes amagades i els soldats"></svg>
+    <div id="globus" class="globus" hidden></div>
+    <div id="batalla" class="batalla" hidden aria-live="polite"></div>
+    <p class="llegenda">La medalla de cada castell major diu quants punts reparteix (6, 4 o 3). Els territoris enfosquits són castells menors: tenen una fitxa amagada i fan de pont entre els seus veïns. Les línies discontínues són rutes per mar. Passa per sobre d’un territori per veure’n els detalls.</p>
+  </section>
+
+  <aside class="tauler">
+    <section class="bloc">
+      <h2 class="etiqueta" id="titol-fase">Desplegament</h2>
+      <ol id="jugadors" class="jugadors"></ol>
+    </section>
+
+    <section class="bloc accio" id="accio" aria-live="polite"></section>
+
+    <section class="bloc">
+      <h2 class="etiqueta">Cartes tàctiques <span class="nota" id="nota-cartes"></span></h2>
+      <ul id="cartes" class="cartes"></ul>
+    </section>
+
+    <section class="bloc">
+      <h2 class="etiqueta">Crònica</h2>
+      <ol id="cronica" class="cronica"></ol>
+    </section>
+  </aside>
+</main>
+
+<!-- Inici -->
+<div class="capa" id="capa-inici">
+  <div class="full full-inici" role="dialog" aria-modal="true" aria-labelledby="t-inici">
+    <h2 id="t-inici" class="titol-full">Terra de Comtes</h2>
+    <p class="entradeta">Quatre cases es disputen els territoris que van del Rosselló a Alacant, amb Mallorca, Menorca i les Pitiüses. A cada partida, 11 dels 19 territoris són castells majors; la resta són castells menors, amb una fitxa amagada. Tires tres daus: dos diuen on, el tercer quants. Quan tothom ha desplegat les seves hosts, esclata la guerra.</p>
+    <form id="form-inici" class="form-inici">
+      <div class="camp">
+        <label for="in-nom">El teu nom</label>
+        <input id="in-nom" type="text" maxlength="18" value="Tu" autocomplete="off">
+      </div>
+      <fieldset class="camp">
+        <legend>La teva casa</legend>
+        <div class="cases" id="tria-casa"></div>
+      </fieldset>
+      <fieldset class="camp">
+        <legend>Nivell dels rivals</legend>
+        <div class="segment">
+          <input type="radio" name="nivell" id="niv-facil" value="facil"><label for="niv-facil">Fàcil</label>
+          <input type="radio" name="nivell" id="niv-normal" value="normal" checked><label for="niv-normal">Normal</label>
+          <input type="radio" name="nivell" id="niv-dificil" value="dificil"><label for="niv-dificil">Difícil</label>
+        </div>
+      </fieldset>
+      <fieldset class="camp">
+        <legend>Ritme dels rivals</legend>
+        <div class="segment">
+          <input type="radio" name="ritme" id="rit-tranquil" value="tranquil" checked><label for="rit-tranquil">Tranquil</label>
+          <input type="radio" name="ritme" id="rit-agil" value="agil"><label for="rit-agil">Àgil</label>
+        </div>
+      </fieldset>
+      <div class="botons-full">
+        <button type="button" class="boto-fantasma" id="btn-inici-regles">Com es juga</button>
+        <button type="button" class="boto-fantasma" id="btn-inici-tanca" hidden>Torna a la partida</button>
+        <button type="submit" class="boto" id="btn-comenca">Comença la partida</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Regles -->
+<div class="capa" id="capa-regles" hidden>
+  <div class="full full-regles" role="dialog" aria-modal="true" aria-labelledby="t-regles">
+    <h2 id="t-regles" class="titol-full">Com es juga</h2>
+    <div class="regles">
+      <h3>Objectiu</h3>
+      <p>Aconseguir més punts que ningú. El mapa té 19 territoris. A cada partida, 11 triats a l’atzar són <strong>Castells Majors</strong>, numerats del 2 al 12. Els altres 8 són <strong>Castells Menors</strong>.</p>
+
+      <h3>Castells Majors</h3>
+      <p>Com més difícil és treure el número amb dos daus, més punts reparteix el castell. El 7 surt sovint; el 2 i el 12, molt poc.</p>
+      <div class="taula-punts-marc">
+        <table class="taula-punts">
+          <thead><tr><th>Número</th><th>Valor</th><th>1r</th><th>2n</th><th>3r</th></tr></thead>
+          <tbody>
+            <tr><td>2, 3, 11, 12</td><td>6</td><td>3</td><td>2</td><td>1</td></tr>
+            <tr><td>4, 5, 9, 10</td><td>4</td><td>2</td><td>1</td><td>1</td></tr>
+            <tr><td>6, 7, 8</td><td>3</td><td>2</td><td>1</td><td>–</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Del quart lloc en avall no es guanya res. Si hi ha empat de força, l’estendard més alt queda per davant.</p>
+
+      <h3>Castells Menors</h3>
+      <p>Cadascun té una fitxa cap per avall que ningú no coneix fins a la guerra. N’hi ha de tres grups:</p>
+      <div class="taula-punts-marc">
+        <table class="taula-punts">
+          <thead><tr><th>Fitxa</th><th>1r</th><th>2n</th><th>Empat al 1r lloc</th></tr></thead>
+          <tbody>
+            <tr><td>Grup 3</td><td>3</td><td>1</td><td>2 cadascú</td></tr>
+            <tr><td>Grup 4</td><td>4</td><td>2</td><td>3 cadascú</td></tr>
+            <tr><td>Grup 5</td><td>5</td><td>3</td><td>4 cadascú</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul>
+        <li><strong>Fan de pont.</strong> Dos castells majors separats només per castells menors es consideren veïns. Això val per als moviments, les cartes i els reforços.</li>
+        <li><strong>Es poden ocupar.</strong> Si hi arriben soldats, a la guerra es lluita per la fitxa. El tercer i els següents no guanyen res. Si hi ha empat al primer lloc, tots els empatats cobren el valor d’empat i no hi ha segon.</li>
+      </ul>
+
+      <h3>1. Desplegament</h3>
+      <p>Cada casa té 26 soldats. Al teu torn tries una d’aquestes accions:</p>
+      <ul>
+        <li><strong>Tirar els daus.</strong> Tires 3 daus i, si no t’agraden, els pots tornar a tirar tots una vegada. Després agrupes dos daus: la suma indica el castell major on vas. El dau que queda indica quants soldats hi poses: 1–2 → 1 soldat, 3–4 → 2 soldats, 5–6 → 3 soldats.</li>
+        <li><strong>Moviment opcional abans de desplegar.</strong> Amb aquest mateix nombre de soldats (1, 2 o 3) pots fer un moviment des d’un territori on en tinguis prou: si el dau sol és <strong>senar</strong>, cap a un territori veí on ja tinguis soldats; si és <strong>parell</strong>, cap a un castell menor veí, encara que no hi tinguis ningú. Després poses els soldats de la reserva al castell que marquen els daus.</li>
+        <li><strong>Jugar una carta tàctica.</strong> Cada casa en pot jugar una sola en tota la partida, i la carta jugada desapareix. Només es poden jugar mentre ningú no hagi acabat la reserva.</li>
+      </ul>
+      <p>Qui posa el seu últim soldat agafa l’<strong>estendard</strong> més alt que quedi (IV, III, II, I) i ja no juga més torns. L’estendard desfà els empats: guanya qui el tingui més alt.</p>
+
+      <h3>2. Guerra</h3>
+      <p>Quan tothom ha desplegat, es tiren <strong>dos daus blancs</strong>. La suma diu per quin castell major comença la guerra; es continua pel número següent i, després del 12, pel 2. Per exemple, si surt un 5, l’ordre és 5, 6, 7… 12, 2, 3 i l’últim és el 4.</p>
+      <p>Després es giren les fitxes dels castells menors. Cada castell menor es resol just després del castell major del número del seu grup (3, 4 o 5). La força de cada casa és soldats + reforços.</p>
+      <p>Qui queda primer en un territori envia <strong>2 reforços</strong> a cada castell major veí que encara no s’hagi resolt i on tingui soldats. Els castells menors <strong>no reben reforços</strong>, però qui en guanya un sí que n’envia als castells majors veïns. En un empat al primer lloc d’un castell menor, els reforços els envia qui té l’estendard més alt.</p>
+
+      <h3>Cartes tàctiques</h3>
+      <p>A cada partida n’hi ha 5 a l’atzar d’aquestes 10:</p>
+      <dl class="llista-cartes" id="regles-cartes"></dl>
+
+      <h3>Què canvia respecte al joc de taula</h3>
+      <ul>
+        <li>Juga una persona contra tres bots. Cada bot té caràcter propi (estratega, agosarat o murri): simula moltes partides fins al final per decidir, no coneix les fitxes amagades, però també es deixa portar pels seus gustos i, als nivells fàcils, s’equivoca com ho faria una persona.</li>
+        <li><strong>Previsió en directe.</strong> La guerra no té atzar (fora de les fitxes amagades, que la previsió compta com si fossin del grup 4, i dels daus blancs: la previsió fa la mitjana de tots els inicis possibles segons la seva probabilitat i, al globus de cada territori, et diu qui el guanyaria i amb quina probabilitat), així que el joc pot calcular qui guanyaria cada territori si comencés ara mateix. Ho veus pintat al mapa i com a punts aproximats al costat de cada casa. Els empats entre cases que encara no tenen estendard es mostren de manera provisional. La pots desactivar si vols jugar com a la taula.</li>
+        <li>Quan passes per sobre d’un territori veus la probabilitat de poder-hi anar amb una tirada i quins són els seus veïns de joc.</li>
+        <li>La guerra es resol animada, batalla a batalla, amb els reforços viatjant pel mapa.</li>
+        <li>El Japó feudal s’ha canviat per 19 territoris de Perpinyà a Alacant, amb Mallorca, Menorca i les Pitiüses connectades per mar.</li>
+        <li>Regles pròpies d’aquesta versió: 11 castells majors a l’atzar entre 19 territoris, puntuació segons la probabilitat dels daus amb premi per al tercer lloc, daus blancs que decideixen per on comença la guerra, castells menors amb fitxa amagada que fan de pont, moviment segons si el dau sol és parell o senar, i 26 soldats per casa.</li>
+        <li>S’han adaptat 10 de les 12 cartes originals. Les dues que depenen massa del mapa japonès o de seleccions molt enrevessades (entrar a la capital i la finta) no hi són.</li>
+      </ul>
+    </div>
+    <div class="botons-full">
+      <button type="button" class="boto" id="btn-tanca-regles">Entesos</button>
+    </div>
+  </div>
+</div>
+
+<!-- Final -->
+<div class="capa" id="capa-final" hidden>
+  <div class="full full-final" role="dialog" aria-modal="true" aria-labelledby="t-final">
+    <h2 id="t-final" class="titol-full">Fi de la guerra</h2>
+    <p class="entradeta" id="final-lema"></p>
+    <table class="resultat" id="final-taula"></table>
+    <div class="botons-full">
+      <button type="button" class="boto-fantasma" id="btn-final-mapa">Mira el mapa</button>
+      <button type="button" class="boto" id="btn-final-nova">Una altra partida</button>
+    </div>
+  </div>
+</div>
+
+<script src="mapa.js"></script>
+<script src="motor.js"></script>
+<script src="bots.js"></script>
+<script src="ui.js"></script>
+<!--/COS-->
+</body>
+</html>
