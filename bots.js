@@ -63,6 +63,7 @@
   /* ---------- Simulació ---------- */
   const _out = new Float64Array(4);
   const _out2 = new Float64Array(4);
+  const _movDe = new Int8Array(6), _movA = new Int8Array(6);
 
   function valorFinal(punts, est, p) {
     let mx = -1, guanya = true;
@@ -96,6 +97,7 @@
     // cada simulació sorteja per on començarà la guerra (dos daus blancs)
     const inici = e.inici != null ? e.inici : 2 + ((rnd() * 6) | 0) + ((rnd() * 6) | 0);
     const taula = e.taulaPublica, ordre = e.ordresPublics[inici], veins = e.veinsReforc, regioDe = e.regioDe;
+    const veinsMou = e.veins, buit = e.buit;
     let torn = e.torn, queden = res[0] + res[1] + res[2] + res[3];
     const daus = [0, 0, 0];
     while (queden > 0) {
@@ -118,6 +120,37 @@
         tropes[millorR * NJ + torn] += millorN;
         res[torn] -= millorN; queden -= millorN;
         if (res[torn] === 0 && est[torn] === 0) est[torn] = lliures.shift();
+      } else {
+        // Casa que ja ho ha desplegat tot: un dau i, potser, un moviment (es proven fins a 6 a l'atzar)
+        const d = 1 + ((rnd() * 6) | 0), n = d <= 2 ? 1 : d <= 4 ? 2 : 3, parell = (d & 1) === 0;
+        let vist = 0;
+        for (let de = 0; de < NR; de++) {
+          if (tropes[de * NJ + torn] < n) continue;
+          const vs = veinsMou[de];
+          for (let i = 0; i < vs.length; i++) {
+            const a = vs[i];
+            if (parell ? !buit[a] : tropes[a * NJ + torn] === 0) continue;
+            vist++;
+            if (vist <= 6) { _movDe[vist - 1] = de; _movA[vist - 1] = a; }
+            else { const k = (rnd() * vist) | 0; if (k < 6) { _movDe[k] = de; _movA[k] = a; } }
+          }
+        }
+        const nc = Math.min(vist, 6);
+        if (nc > 0) {
+          M.puntsRapids(taula, ordre, tropes, est, _out2, veins);
+          let mx = -1; for (let j = 0; j < NJ; j++) if (j !== torn && _out2[j] > mx) mx = _out2[j];
+          let millorV = _out2[torn] - mx, millorK = -1;
+          for (let k = 0; k < nc; k++) {
+            const de = _movDe[k], a = _movA[k];
+            tropes[de * NJ + torn] -= n; tropes[a * NJ + torn] += n;
+            M.puntsRapids(taula, ordre, tropes, est, _out2, veins);
+            tropes[de * NJ + torn] += n; tropes[a * NJ + torn] -= n;
+            let m2 = -1; for (let j = 0; j < NJ; j++) if (j !== torn && _out2[j] > m2) m2 = _out2[j];
+            const v = _out2[torn] - m2;
+            if (v > millorV) { millorV = v; millorK = k; }
+          }
+          if (millorK >= 0) { tropes[_movDe[millorK] * NJ + torn] -= n; tropes[_movA[millorK] * NJ + torn] += n; }
+        }
       }
       torn = (torn + 1) % NJ;
     }
@@ -184,6 +217,22 @@
       })).sort((a, b) => b.v - a.v);
       const tria = av.length > 1 && Math.random() < this.n.error ? av[1] : av[0];
       return { op: tria.cd.op, mov: tria.cd.mov };
+    }
+
+    // Torn d'una casa que ja ho ha desplegat tot: amb el dau de soldats 'd', tria un moviment o cap (null)
+    decideixMoviment(e, d) {
+      const p = this.p;
+      const movs = M.moviments(e, p, d);
+      if (!movs.length) return null;
+      const fes = mov => { const c = M.clona(e); M.jugaMoviment(c, p, mov); return c; };
+      const cands = [{ mov: null, estat: fes(null) }].concat(movs.map(mov => ({ mov, estat: fes(mov) })));
+      cands.forEach(cd => (cd.st = estatic(cd.estat, p) + (cd.mov ? this.c.gustMoure * 0.5 : 0)));
+      const millors = [cands[0]].concat(cands.slice(1).sort((a, b) => b.st - a.st).slice(0, this.n.movs + 1));
+      const llavor = (Math.random() * 1e9) | 0;
+      const av = millors.map(cd => ({ cd, v: this.valorCand(cd, this.n.R, llavor) + this.soroll() * 0.5 }))
+        .sort((a, b) => b.v - a.v);
+      const tria = av.length > 1 && Math.random() < this.n.error ? av[1] : av[0];
+      return tria.cd.mov;
     }
 
     // Decideix si juga carta. Retorna { id, accio } o null

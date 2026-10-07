@@ -74,8 +74,14 @@ soldats, des d'un territori on en tinguis prou:
 **Jugar una carta tàctica.** Cada casa en pot jugar una sola en tota la partida. Només
 es poden jugar mentre ningú no hagi acabat la reserva.
 
-Qui posa el seu últim soldat pren l'**estendard** més alt que quedi (IV, III, II, I) i
-ja no juga més torns. L'estendard desfà els empats.
+Qui posa el seu últim soldat pren l'**estendard** més alt que quedi (IV, III, II, I).
+L'estendard desfà els empats.
+
+**Torns de moviment.** Mentre els altres encara despleguen, qui ja ho ha desplegat tot
+continua tenint torn. Hi tira **un sol dau**, el de soldats (1–2 → 1, 3–4 → 2,
+5–6 → 3), i pot moure aquests soldats seguint la regla del moviment opcional: senar,
+cap a un veí on ja en tingui; parell, cap a un castell menor veí. Moure és opcional i
+no hi ha segona tirada.
 
 ### 2. Guerra
 
@@ -121,6 +127,7 @@ A cada partida n'hi ha 5 a l'atzar d'aquestes 10:
 - Dos daus blancs decideixen per quin castell comença la guerra.
 - Castells menors amb fitxes amagades que fan de pont.
 - Moviment opcional segons si el dau sol és parell o senar.
+- Qui acaba de desplegar no perd el torn: continua movent soldats amb un sol dau.
 - 26 soldats per casa en lloc de 18.
 - 10 de les 12 cartes originals, adaptades. No hi ha l'entrada a la capital ni la finta.
 - **Previsió en directe** (es pot desactivar): el mapa pinta qui guanyaria cada
@@ -183,6 +190,13 @@ const bots = [0, 1, 2, 3].map(j => new B.Bot(j, 'estratega', 'normal'));
 
 while (e.fase === 'desplegament') {
   const bot = bots[e.torn];
+  if (M.haAcabat(e, e.torn)) {
+    // ja ho ha desplegat tot: un sol dau i, si vol, un moviment
+    const d = M.dau();
+    M.jugaMoviment(e, e.torn, bot.decideixMoviment(e, d));
+    M.passaTorn(e);
+    continue;
+  }
   const carta = bot.decideixCarta(e);
   if (carta) {
     M.jugaCarta(e, e.torn, carta.id, carta.accio);

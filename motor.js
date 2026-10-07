@@ -331,13 +331,21 @@
 
   const potJugarCarta = (e, p) => e.fase === 'desplegament' && e.cartesActives && !e.cartaUsada[p] && e.cartes.length > 0;
 
+  // Torns: mentre algú tingui soldats a la reserva, juguen tots per ordre. Les cases que ja
+  // ho han desplegat tot també tenen torn, però només per moure (vegeu jugaMoviment).
   function passaTorn(e) {
-    for (let k = 1; k <= NJ; k++) {
-      const j = (e.torn + k) % NJ;
-      if (e.reserva[j] > 0) { if (j <= e.torn) e.tornNum++; e.torn = j; return true; }
-    }
-    e.fase = 'guerra';
-    return false;
+    if (e.reserva.every(x => x === 0)) { e.fase = 'guerra'; return false; }
+    const j = (e.torn + 1) % NJ;
+    if (j <= e.torn) e.tornNum++;
+    e.torn = j;
+    return true;
+  }
+  const haAcabat = (e, p) => e.reserva[p] === 0;
+
+  // Torn d'una casa que ja ha desplegat tots els soldats: tira un sol dau (el de soldats)
+  // i pot fer el moviment opcional (senar → on ja té soldats; parell → a un castell menor).
+  function jugaMoviment(e, p, mov) {
+    if (mov) { e.tropes[mov.de * NJ + p] -= mov.n; e.tropes[mov.a * NJ + p] += mov.n; }
   }
 
   /* ---------- Guerra ---------- */
@@ -452,7 +460,7 @@
     PUNTS_MAJOR, PUNTS_MENOR, EMPAT_MENOR, taulaPunts, puntsDe, repartiment,
     fisTerra, fisMar, fisTots, calculaVeinatge, rng, dau, barreja, soldatsPerDau, agrupacions, moviments,
     accionsCarta, aplicaOps, novaPartida, clona, regioDeValor, desplega, jugaTirada, jugaCarta, potJugarCarta,
-    passaTorn, resolGuerra, previsio, tiraInici, puntsRapids, ordreDe, PROB_INICI, INICIS, comprovaReserva,
+    passaTorn, haAcabat, jugaMoviment, resolGuerra, previsio, tiraInici, puntsRapids, ordreDe, PROB_INICI, INICIS, comprovaReserva,
   };
   global.Motor = API;
   if (typeof module !== 'undefined') module.exports = API;

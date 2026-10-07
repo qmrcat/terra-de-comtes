@@ -262,7 +262,7 @@
       if (guerraVis) { punts = guerraVis.punts[j]; etiqueta = 'punts'; }
       else if (previs) { punts = '≈' + Math.round(previs.punts[j]); etiqueta = 'previsió'; }
       const extra = [];
-      if (e.fase === 'desplegament') extra.push(`Reserva <b>${e.reserva[j]}</b>`);
+      if (e.fase === 'desplegament') extra.push(e.reserva[j] ? `Reserva <b>${e.reserva[j]}</b>` : '<b>Desplegat · només mou</b>');
       if (e.estendards[j]) extra.push(`Estendard <b>${ROMA[e.estendards[j]]}</b>`);
       if (e.cartaUsada[j]) extra.push(`<b>${M.CARTA[e.cartaUsada[j]].nom}</b>`);
       li.innerHTML = `<span class="escut">${CASES[j].lletra}</span>
@@ -365,7 +365,10 @@
       jug.forEach(J => (J.diu = J.diu || ''));
       renderTot();
       const p = e.torn;
-      if (jug[p].huma) await tornHuma(id, p);
+      if (M.haAcabat(e, p)) {
+        if (jug[p].huma) await tornHumaAcabat(id, p);
+        else await tornBotAcabat(id, p);
+      } else if (jug[p].huma) await tornHuma(id, p);
       else await tornBot(id, p);
       if (!viu(id)) return;
       M.passaTorn(e);
@@ -459,10 +462,10 @@
   function pasMoviment() {
     const op = ui.op, n = op.quants;
     netejaMarques();
-    const r = M.regioDeValor(e, op.suma);
+    const r = op.lliure ? null : M.regioDeValor(e, op.suma);
     const regla = op.parell
-      ? `Dau sol ${op.dauSol} (parell): pots moure ${n} ${n === 1 ? 'soldat teu' : 'soldats teus'} a un <b>castell menor</b> veí, encara que no hi tinguis ningú.`
-      : `Dau sol ${op.dauSol} (senar): pots moure ${n} ${n === 1 ? 'soldat teu' : 'soldats teus'} a un territori veí <b>on ja tinguis soldats</b>.`;
+      ? `${op.lliure ? 'Dau' : 'Dau sol'} ${op.dauSol} (parell): pots moure ${n} ${n === 1 ? 'soldat teu' : 'soldats teus'} a un <b>castell menor</b> veí, encara que no hi tinguis ningú.`
+      : `${op.lliure ? 'Dau' : 'Dau sol'} ${op.dauSol} (senar): pots moure ${n} ${n === 1 ? 'soldat teu' : 'soldats teus'} a un territori veí <b>on ja tinguis soldats</b>.`;
     let pas;
     if (ui.movDe == null) {
       marca([...new Set(ui.movs.map(m => m.de))], 'candidat');
@@ -472,13 +475,15 @@
       marca(ui.movs.filter(m => m.de === ui.movDe).map(m => m.a), 'candidat');
       pas = `Surten de ${NOM_R(ui.movDe)}. Tria on van.`;
     }
-    $('#accio').innerHTML = `<h3>Moviment opcional</h3><p>${regla}</p><p><b>${pas}</b></p>
-      <p>Després, ${Math.min(n, e.reserva[ui.p])} de la reserva aniran a ${NOM_R(r)} (castell ${op.suma}).</p>
+    const despres = op.lliure ? '<p>Ja has desplegat tots els soldats: aquest torn només serveix per moure.</p>'
+      : `<p>Després, ${Math.min(n, e.reserva[ui.p])} de la reserva aniran a ${NOM_R(r)} (castell ${op.suma}).</p>`;
+    $('#accio').innerHTML = `<h3>Moviment opcional</h3>${op.lliure ? `<div class="daus">${htmlDau(op.dauSol)}</div>` : ''}<p>${regla}</p><p><b>${pas}</b></p>
+      ${despres}
       <div class="fila-botons">
-        <button type="button" class="boto" id="btn-no-moure">No moguis, desplega</button>
+        <button type="button" class="boto" id="btn-no-moure">${op.lliure ? 'No moguis, passa el torn' : 'No moguis, desplega'}</button>
         ${ui.movDe != null ? '<button type="button" class="boto-fantasma" id="btn-altre-origen">Canvia l’origen</button>' : ''}
       </div>`;
-    $('#btn-no-moure').addEventListener('click', () => desplegaHuma(op, null));
+    $('#btn-no-moure').addEventListener('click', () => (op.lliure ? acabaMovimentHuma(null) : desplegaHuma(op, null)));
     const ao = $('#btn-altre-origen');
     if (ao) ao.addEventListener('click', () => { ui.movDe = null; pasMoviment(); });
   }
@@ -495,6 +500,97 @@
     renderTot([{ r, j: p }].concat(mov ? [{ r: mov.a, j: p }] : []));
     const res = ui.resolve;
     setTimeout(res, 350);
+  }
+
+  /* ---------- Torns de moviment (casa que ja ho ha desplegat tot) ---------- */
+  const textRegla = (d, n) => d % 2 === 0
+    ? `Dau ${d} (parell): ${n} ${n === 1 ? 'soldat' : 'soldats'} cap a un castell menor veí.`
+    : `Dau ${d} (senar): ${n} ${n === 1 ? 'soldat' : 'soldats'} cap a un veí on ja tingui soldats.`;
+  const cronicaMov = (p, d, mov) => cronica(mov
+    ? `${nomJ(p)} tira un ${d} i mou ${mov.n} ${mov.n === 1 ? 'soldat' : 'soldats'} de ${NOM_R(mov.de)} a ${NOM_R(mov.a)}${e.buit[mov.a] ? ' (castell menor)' : ''}.`
+    : `${nomJ(p)} tira un ${d} i no mou ningú.`, p);
+
+  function tornHumaAcabat(id, p) {
+    return new Promise(resolve => {
+      ui = { mode: 'acabat', p, id, resolve };
+      $('#accio').dataset.casa = p;
+      netejaMarques();
+      $('#accio').innerHTML = `<h3>El teu torn</h3>
+        <p>Ja has desplegat tots els soldats. Mentre els altres acaben, a cada torn tires <b>un sol dau</b> i pots moure soldats teus: senar, cap a un veí on ja en tinguis; parell, cap a un castell menor veí.</p>
+        <div class="fila-botons"><button type="button" class="boto" id="btn-tira1">Tira el dau</button></div>`;
+      $('#btn-tira1').addEventListener('click', tiraUnDauHuma);
+      $('#btn-tira1').focus({ preventScroll: true });
+      renderTot();
+    });
+  }
+
+  async function tiraUnDauHuma() {
+    if (ui.mode !== 'acabat') return;
+    const id = ui.id, p = ui.p;
+    ui.mode = 'tirant';
+    const d = M.dau();
+    $('#accio').innerHTML = '<h3>Dau de soldats</h3><div class="daus" id="daus"></div>';
+    await animaDaus($('#daus'), [d], id);
+    if (!viu(id)) return;
+    const n = M.soldatsPerDau(d);
+    const movs = M.moviments(e, p, d);
+    ui.op = { lliure: true, dauSol: d, quants: n, parell: d % 2 === 0 };
+    ui.dau1 = d;
+    if (!movs.length) {
+      $('#accio').innerHTML = `<h3>Dau de soldats</h3><div class="daus">${htmlDau(d)}</div>
+        <p>${textRegla(d, n)}</p><p><b>Ara mateix no tens cap moviment possible.</b></p>
+        <div class="fila-botons"><button type="button" class="boto" id="btn-passa">Passa el torn</button></div>`;
+      $('#btn-passa').addEventListener('click', () => acabaMovimentHuma(null));
+      $('#btn-passa').focus({ preventScroll: true });
+      ui.mode = 'sense-moviment';
+      return;
+    }
+    ui.mode = 'moviment'; ui.movs = movs; ui.movDe = null;
+    pasMoviment();
+  }
+
+  function acabaMovimentHuma(mov) {
+    if (!ui.resolve) return;
+    const p = ui.p, d = ui.dau1;
+    M.jugaMoviment(e, p, mov);
+    ui.mode = 'res';
+    netejaMarques();
+    cronicaMov(p, d, mov);
+    $('#accio').innerHTML = `<h3>Fet</h3><p>${mov ? `${mov.n} ${mov.n === 1 ? 'soldat va' : 'soldats van'} de ${NOM_R(mov.de)} a ${NOM_R(mov.a)}.` : 'Passes el torn sense moure.'}</p>`;
+    renderTot(mov ? [{ r: mov.a, j: p }] : null);
+    const res = ui.resolve; ui.resolve = null;
+    setTimeout(res, 350);
+  }
+
+  async function tornBotAcabat(id, p) {
+    const J = jug[p], bot = J.bot;
+    J.pensant = true; J.diu = '';
+    ui = { mode: 'bot', p };
+    $('#accio').dataset.casa = p;
+    $('#accio').innerHTML = `<h3>Torn ${art(esc(J.nom))}</h3><p>Ja ho ha desplegat tot: tira un dau per moure.</p><div class="daus" id="daus"></div>`;
+    renderTot();
+    await espera(ritme(450, 800));
+    if (!viu(id)) return;
+    const d = M.dau();
+    await animaDaus($('#daus'), [d], id);
+    if (!viu(id)) return;
+    const mov = bot.decideixMoviment(e, d);
+    await espera(ritme(450, 800));
+    if (!viu(id)) return;
+    J.pensant = false;
+    $('#accio').querySelector('p').innerHTML = `${textRegla(d, M.soldatsPerDau(d))} ${mov ? `Mou ${mov.n} de ${NOM_R(mov.de)} a <b>${NOM_R(mov.a)}</b>.` : 'No mou ningú.'}`;
+    if (mov) {
+      J.diu = bot.frase(e.buit[mov.a] ? 'buit' : 'mou', { comtat: NOM_R(mov.a) });
+      renderTot();
+      marca([mov.de, mov.a], 'destacat');
+      await espera(ritme(800, 1200));
+      if (!viu(id)) return;
+      M.jugaMoviment(e, p, mov);
+      renderTot([{ r: mov.a, j: p }]);
+    } else renderTot();
+    cronicaMov(p, d, mov);
+    await espera(ritme(500, 800));
+    netejaMarques();
   }
 
   /* ---------- Cartes (persona) ---------- */
@@ -576,7 +672,7 @@
       if (regioG[i].classList.contains('candidat')) {
         if (ui.movDe == null) { ui.movDe = i; return pasMoviment(); }
         const mov = ui.movs.find(m => m.de === ui.movDe && m.a === i);
-        if (mov) return desplegaHuma(ui.op, mov);
+        if (mov) return ui.op.lliure ? acabaMovimentHuma(mov) : desplegaHuma(ui.op, mov);
       }
     }
     if (ev && ev.pointerType !== 'mouse') {           // en pantalles tàctils, el toc mostra la informació
